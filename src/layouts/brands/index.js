@@ -1,21 +1,37 @@
-import { useState, useEffect } from 'react';
-import { getDatabase, ref, onValue } from 'firebase/database'; // Update import statement
-import { database } from "../../firebase"; // Assuming you have initialized Firebase Realtime Database
+import React, { useState, useEffect } from 'react';
+import { getDatabase, ref, onValue } from 'firebase/database';
+import { database } from "../../firebase";
+import DashboardLayout from "../../examples/LayoutContainers/DashboardLayout";
+import DashboardNavbar from "../../examples/Navbars/DashboardNavbar";
+import Footer from "../../examples/Footer";
+import DataTable from "../../examples/Tables/DataTable";
+import MDSnackbar from "../../components/MDSnackbar";
+import { Table, TableBody, TableRow, TableCell, TableHead } from '@mui/material';
+
+// @mui material components
+import Grid from "@mui/material/Grid";
+
+// Admin panel React components
+import MDBox from "components/MDBox"
+import Card from "@mui/material/Card";
+import MDTypography from "components/MDTypography";
+import MDButton from "components/MDButton";
+import Icon from "@mui/material/Icon";
+
 
 function Brands() {
   const [userData, setUserData] = useState([]);
 
   useEffect(() => {
-    // Function to fetch all users from Realtime Database
     const fetchAllUsers = () => {
-      const db = getDatabase(); // Get the database instance
-      const usersRef = ref(db, 'users'); // Reference to 'users' node
-      onValue(usersRef, (snapshot) => { // Listen for value changes
+      const db = getDatabase();
+      const usersRef = ref(db, 'users');
+      onValue(usersRef, (snapshot) => {
         const users = [];
         snapshot.forEach((childSnapshot) => {
           const user = {
             id: childSnapshot.key,
-            emailAddress: childSnapshot.val().emailAddress, // Access properties directly from val()
+            emailAddress: childSnapshot.val().emailAddress,
             verifiedClient: childSnapshot.val().verifiedClient,
             verifiedServiceProvider: childSnapshot.val().verifiedServiceProvider,
           };
@@ -27,29 +43,66 @@ function Brands() {
       });
     };
 
-    // Call the fetchAllUsers function when the component mounts
     fetchAllUsers();
 
-    // Clean up function (optional)
-    return () => {
-      // Any cleanup code if needed
-    };
-  }, []); // Empty dependency array to run the effect only once
+  }, []);
 
   return (
-    <div>
-      <h1>User Data</h1>
-      <ul>
-        {userData.map((user) => (
-          <li key={user.id}>
-            <p>ID: {user.id}</p>
-            <p>Email Address: {user.emailAddress}</p>
-            <p>Verified Client: {user.verifiedClient ? 'Yes' : 'No'}</p>
-            <p>Verified Service Provider: {user.verifiedServiceProvider ? 'Yes' : 'No'}</p>
-          </li>
-        ))}
-      </ul>
-    </div>
+<>
+  <DashboardLayout>
+    <DashboardNavbar />
+    <MDBox py={3}>
+      <MDBox>
+        <Grid container spacing={3}>
+          <Grid item xs={12}>
+            <Card>
+              <MDBox
+                mx={2}
+                mt={-3}
+                py={3}
+                px={2}
+                variant="gradient"
+                bgColor="info"
+                borderRadius="lg"
+                coloredShadow="info"
+              >
+                <MDBox pt={2} pb={2} px={2} display="flex" justifyContent="space-between" alignItems="center">
+                  <MDTypography variant="h6" fontWeight="medium" color="white">
+                    All Users
+                  </MDTypography>
+                </MDBox>
+              </MDBox>
+              <MDBox pt={3}>
+                <Table display="flex" alignItems="center">
+                    <TableRow alignItems="center">
+                      <TableCell>No.</TableCell>
+                      <TableCell>ID</TableCell>
+                      <TableCell>Email Address</TableCell>
+                      <TableCell>Verified Client</TableCell>
+                      <TableCell>Verified Service Provider</TableCell>
+                    </TableRow>
+                  <TableBody alignItems="center">
+                    {userData.map((user, index) => (
+                      <TableRow key={user.id}>
+                        <TableCell>{index + 1}</TableCell>
+                        <TableCell>{user.id}</TableCell>
+                        <TableCell>{user.emailAddress}</TableCell>
+                        <TableCell>{user.verifiedClient ? 'Yes' : 'No'}</TableCell>
+                        <TableCell>{user.verifiedServiceProvider ? 'Yes' : 'No'}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </MDBox>
+            </Card>
+          </Grid>
+        </Grid>
+      </MDBox>
+    </MDBox>
+    <Footer />
+  </DashboardLayout>
+</>
+
   );
 }
 
