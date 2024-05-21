@@ -1,6 +1,8 @@
 // Material Dashboard 2 React layouts
 import Dashboard from "layouts/dashboard";
-import Brands from "layouts/brands";
+import Users from "layouts/PageUsers";
+import Info from "layouts/user_seller_info";
+import UserPerformance from "layouts/users_performance";
 import AddSale from "layouts/addSale";
 import Banks from "layouts/banks";
 import Signup from "layouts/authentication/users/Signup"
@@ -12,6 +14,7 @@ import SalesDetail from "layouts/addSale/components/Detail"
 // @mui icons
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import AccountBoxIcon from '@mui/icons-material/AccountBox';
+import InfoIcon from '@mui/icons-material/Info';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import LoginIcon from '@mui/icons-material/Login';
@@ -47,10 +50,28 @@ const routes = [
     routeRole: "admin",
     type: "collapse",
     name: "Users",
-    key: "admin/brands",
+    key: "admin/PageUsers",
     icon: <AccountBoxIcon />,
     route: "/admin/users",
-    component: <AdminAuthRoutes><Brands /></AdminAuthRoutes>,
+    component: <AdminAuthRoutes><Users /></AdminAuthRoutes>,
+  },
+  {
+    routeRole: "admin",
+    type: "collapse",
+    name: "Users Seller Info",
+    key: "admin/users_seller_info",
+    icon: <InfoIcon />,
+    route: "/admin/UsersSellerInfo",
+    component: <AdminAuthRoutes><Info /></AdminAuthRoutes>,
+  },
+  {
+    routeRole: "admin",
+    type: "collapse",
+    name: "Users Performance",
+    key: "admin/users_performance",
+    icon: <InfoIcon />,
+    route: "/admin/Performance",
+    component: <AdminAuthRoutes><UserPerformance /></AdminAuthRoutes>,
   },
   {
     routeRole: "admin",
