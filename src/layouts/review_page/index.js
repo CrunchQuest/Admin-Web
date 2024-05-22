@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { getDatabase, ref, onValue, remove } from 'firebase/database';
-import { database } from "../../firebase";
 import DashboardLayout from "../../examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "../../examples/Navbars/DashboardNavbar";
 import Footer from "../../examples/Footer";
@@ -10,63 +9,68 @@ import { Table, TableBody, TableRow, TableCell, TableHead, Dialog, DialogTitle, 
 import Grid from "@mui/material/Grid";
 
 // Admin panel React components
-import MDBox from "components/MDBox"
+import MDBox from "components/MDBox";
 import Card from "@mui/material/Card";
 import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
-import Icon from "@mui/material/Icon";
+import DeleteIcon from '@mui/icons-material/Delete';
 
-function UserPerformance() {
-  const [performanceData, setPerformanceData] = useState([]);
-  const [deletePerformanceId, setDeletePerformanceId] = useState(null);
+function Review() {
+  const [data, setData] = useState([]);
+  const [deleteId, setDeleteId] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
 
   useEffect(() => {
-    const fetchAllPerformances = () => {
+    const fetchData = () => {
       const db = getDatabase();
-      const performanceRef = ref(db, 'user_performance');
-      onValue(performanceRef, (snapshot) => {
-        const performances = [];
+      const dataRef = ref(db, 'reviews'); // Replace 'reviews' with the correct path in your database
+      onValue(dataRef, (snapshot) => {
+        const items = [];
         snapshot.forEach((childSnapshot) => {
-          const performance = {
-            id: childSnapshot.key,
-            category_name: childSnapshot.val().category_name,
-            rating: childSnapshot.val().rating,
-            total: childSnapshot.val().total,
-          };
-          performances.push(performance);
+          const id = childSnapshot.key;
+          childSnapshot.forEach((uidSnapshot) => {
+            const item = {
+              id: id,
+              uid: uidSnapshot.key,
+              categoryId: uidSnapshot.val().categoryId,
+              rating: uidSnapshot.val().rating,
+              review: uidSnapshot.val().review,
+              userUid: uidSnapshot.val().userUid,
+            };
+            items.push(item);
+          });
         });
-        setPerformanceData(performances);
+        setData(items);
       }, (error) => {
-        console.error('Error fetching performances:', error);
+        console.error('Error fetching data:', error);
       });
     };
 
-    fetchAllPerformances();
+    fetchData();
   }, []);
 
-  const handleDeletePerformance = (performanceId) => {
+  const handleDelete = (id) => {
     const db = getDatabase();
-    const performanceRef = ref(db, `user_performance/${performanceId}`);
-    remove(performanceRef)
+    const dataRef = ref(db, `reviews/${id}`);  // Replace 'your_data_path' with the correct path in your database
+    remove(dataRef)
       .then(() => {
-        // Remove the performance from state after successful deletion
-        setPerformanceData(prevPerformances => prevPerformances.filter(performance => performance.id !== performanceId));
+        // Remove the item from state after successful deletion
+        setData(prevData => prevData.filter(item => item.id !== id));
       })
       .catch((error) => {
-        console.error('Error deleting performance:', error);
+        console.error('Error deleting item:', error);
       });
     handleCloseDialog();
   };
 
-  const handleOpenDialog = (performanceId) => {
-    setDeletePerformanceId(performanceId);
+  const handleOpenDialog = (id) => {
+    setDeleteId(id);
     setOpenDialog(true);
   };
 
   const handleCloseDialog = () => {
     setOpenDialog(false);
-    setDeletePerformanceId(null);
+    setDeleteId(null);
   };
 
   return (
@@ -90,35 +94,45 @@ function UserPerformance() {
                   >
                     <MDBox pt={2} pb={2} px={2} display="flex" justifyContent="space-between" alignItems="center">
                       <MDTypography variant="h6" fontWeight="medium" color="white">
-                        User Performance
+                        All Review
                       </MDTypography>
                     </MDBox>
                   </MDBox>
                   <MDBox pt={3}>
-                    <Table display="flex" alignItems="center">
-                        <TableRow align="center">
+                    <Table>
+                        <TableRow>
                           <TableCell>No.</TableCell>
-                          <TableCell>ID</TableCell>
-                          <TableCell>Category Name</TableCell>
+                          <TableCell>User ID</TableCell>
+                          <TableCell>Category ID</TableCell>
                           <TableCell>Rating</TableCell>
-                          <TableCell>Total</TableCell>
-                          <TableCell>Action</TableCell> {/* Add Action column */}
+                          <TableCell>Review</TableCell>
+                          <TableCell>ID Review</TableCell>
+                          <TableCell>UID Reviewer</TableCell>
+                          <TableCell>Action</TableCell>
                         </TableRow>
-                      <TableBody alignItems="center">
-                        {performanceData.map((performance, index) => (
-                          <TableRow key={performance.id}>
+                      <TableBody>
+                        {data.map((item, index) => (
+                          <TableRow key={item.id}>
                             <TableCell>{index + 1}</TableCell>
-                            <TableCell>{performance.id}</TableCell>
-                            <TableCell>{performance.categoryName}</TableCell>
-                            <TableCell>{performance.rating}</TableCell>
-                            <TableCell>{performance.total}</TableCell>
+                            <TableCell>{item.id}</TableCell>
+                            <TableCell>{item.categoryId}</TableCell>
+                            <TableCell>{item.rating}</TableCell>
+                            <TableCell>{item.review}</TableCell>
+                            <TableCell>{item.uid}</TableCell>
+                            <TableCell>{item.userUid}</TableCell>
                             <TableCell>
                               <MDButton
-                                onClick={() => handleOpenDialog(performance.id)}
-                                variant="outlined"
-                                color="error"
+                                onClick={() => handleOpenDialog(item.id)}
+                                variant="contained"
+                                sx={{
+                                  backgroundColor: 'red',
+                                  width: '40px',
+                                  height: '40px',
+                                  minWidth: 'auto',
+                                  padding: '5px'
+                                }}
                               >
-                                Delete
+                                <DeleteIcon />
                               </MDButton>
                             </TableCell>
                           </TableRow>
@@ -141,14 +155,14 @@ function UserPerformance() {
         <DialogTitle>Confirm Delete</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Are you sure you want to delete this performance data?
+            Are you sure you want to delete this item?
           </DialogContentText>
         </DialogContent>
         <DialogActions>
           <MDButton onClick={handleCloseDialog} color="primary">
             Cancel
           </MDButton>
-          <MDButton onClick={() => handleDeletePerformance(deletePerformanceId)} color="error">
+          <MDButton onClick={() => handleDelete(deleteId)} color="error">
             Delete
           </MDButton>
         </DialogActions>
@@ -157,4 +171,4 @@ function UserPerformance() {
   );
 }
 
-export default UserPerformance;
+export default Review;

@@ -14,6 +14,7 @@ import Card from "@mui/material/Card";
 import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
 import Icon from "@mui/material/Icon";
+import DeleteIcon from '@mui/icons-material/Delete';
 
 function Users() {
   const [userData, setUserData] = useState([]);
@@ -111,7 +112,7 @@ function Users() {
                     borderRadius="lg"
                     coloredShadow="info"
                   >
-                    <MDBox pt={2} pb={2} px={2} display="flex" justifyContent="space-between" alignItems="center">
+                    <MDBox pt={2} pb={2} px={2} display="flex" justifyContent="space-between" alignItems="center" color="grape">
                       <MDTypography variant="h6" fontWeight="medium" color="white">
                         All Users
                       </MDTypography>
@@ -144,10 +145,16 @@ function Users() {
                             <TableCell>
                               <MDButton
                                 onClick={() => handleOpenDialog(user.id)}
-                                variant="outlined"
-                                color="error"
+                                variant="contained"
+                                sx={{
+                                  backgroundColor: 'red',
+                                  width: '40px',
+                                  height: '40px',
+                                  minWidth: 'auto',
+                                  padding: '5px'
+                                }}
                               >
-                                Delete
+                                <DeleteIcon />
                               </MDButton>
                             </TableCell>
                           </TableRow>

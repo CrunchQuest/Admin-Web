@@ -1,77 +1,76 @@
 import React, { useState, useEffect } from 'react';
 import { getDatabase, ref, onValue, remove } from 'firebase/database';
-import { database } from "../../firebase";
 import DashboardLayout from "../../examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "../../examples/Navbars/DashboardNavbar";
 import Footer from "../../examples/Footer";
-import MDSnackbar from "../../components/MDSnackbar";
 import { Table, TableBody, TableRow, TableCell, TableHead, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@mui/material';
 
 // @mui material components
 import Grid from "@mui/material/Grid";
 
 // Admin panel React components
-import MDBox from "components/MDBox"
+import MDBox from "components/MDBox";
 import Card from "@mui/material/Card";
 import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
-import Icon from "@mui/material/Icon";
 import DeleteIcon from '@mui/icons-material/Delete';
 
-function Info() {
-  const [sellerData, setSellerData] = useState([]);
-  const [deleteSellerId, setDeleteSellerId] = useState(null);
+function Review() {
+  const [data, setData] = useState([]);
+  const [deleteId, setDeleteId] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
 
   useEffect(() => {
-    const fetchAllSellers = () => {
+    const fetchData = () => {
       const db = getDatabase();
-      const sellersRef = ref(db, 'user_seller_info');
-      onValue(sellersRef, (snapshot) => {
-        const sellers = [];
+      const dataRef = ref(db, 'reviews'); // Replace 'reviews' with the correct path in your database
+      onValue(dataRef, (snapshot) => {
+        const items = [];
         snapshot.forEach((childSnapshot) => {
-          const seller = {
-            id: childSnapshot.key,
-            count: childSnapshot.val().count,
-            description: childSnapshot.val().description,
-            educationalAttainment: childSnapshot.val().educationalAttainment,
-            previousSchool: childSnapshot.val().previousSchool,
-            totalJobsFinished: childSnapshot.val().totalJobsFinished,
-            totalRating: childSnapshot.val().totalRating,
-          };
-          sellers.push(seller);
+          const id = childSnapshot.key;
+          childSnapshot.forEach((uidSnapshot) => {
+            const item = {
+              id: id,
+              uid: uidSnapshot.key,
+              categoryId: uidSnapshot.val().categoryId,
+              rating: uidSnapshot.val().rating,
+              review: uidSnapshot.val().review,
+              userUid: uidSnapshot.val().userUid,
+            };
+            items.push(item);
+          });
         });
-        setSellerData(sellers);
+        setData(items);
       }, (error) => {
-        console.error('Error fetching sellers:', error);
+        console.error('Error fetching data:', error);
       });
     };
 
-    fetchAllSellers();
+    fetchData();
   }, []);
 
-  const handleDeleteSeller = (sellerId) => {
+  const handleDelete = (id) => {
     const db = getDatabase();
-    const sellerRef = ref(db, `user_seller_info/${sellerId}`);
-    remove(sellerRef)
+    const dataRef = ref(db, `reviews/${id}`);  // Replace 'your_data_path' with the correct path in your database
+    remove(dataRef)
       .then(() => {
-        // Remove the seller from state after successful deletion
-        setSellerData(prevSellers => prevSellers.filter(seller => seller.id !== sellerId));
+        // Remove the item from state after successful deletion
+        setData(prevData => prevData.filter(item => item.id !== id));
       })
       .catch((error) => {
-        console.error('Error deleting seller:', error);
+        console.error('Error deleting item:', error);
       });
     handleCloseDialog();
   };
 
-  const handleOpenDialog = (sellerId) => {
-    setDeleteSellerId(sellerId);
+  const handleOpenDialog = (id) => {
+    setDeleteId(id);
     setOpenDialog(true);
   };
 
   const handleCloseDialog = () => {
     setOpenDialog(false);
-    setDeleteSellerId(null);
+    setDeleteId(null);
   };
 
   return (
@@ -81,7 +80,7 @@ function Info() {
         <MDBox py={3}>
           <MDBox>
             <Grid container spacing={3}>
-              <Grid item xs={30}>
+              <Grid item xs={12}>
                 <Card>
                   <MDBox
                     mx={2}
@@ -95,37 +94,35 @@ function Info() {
                   >
                     <MDBox pt={2} pb={2} px={2} display="flex" justifyContent="space-between" alignItems="center">
                       <MDTypography variant="h6" fontWeight="medium" color="white">
-                        All Sellers
+                        All Items
                       </MDTypography>
                     </MDBox>
                   </MDBox>
                   <MDBox pt={3}>
-                    <Table display="flex" alignItems="center">
-                        <TableRow align="center">
+                    <Table>
+                        <TableRow>
                           <TableCell>No.</TableCell>
-                          <TableCell>ID</TableCell>
-                          <TableCell>Count</TableCell>
-                          <TableCell>Description</TableCell>
-                          <TableCell>Educational Attainment</TableCell>
-                          <TableCell>Previous School</TableCell>
-                          <TableCell>Total Jobs Finished</TableCell>
-                          <TableCell>Total Rating</TableCell>
-                          <TableCell>Action</TableCell> {/* Add Action column */}
+                          <TableCell>User ID</TableCell>
+                          <TableCell>Category ID</TableCell>
+                          <TableCell>Rating</TableCell>
+                          <TableCell>Review</TableCell>
+                          <TableCell>ID Review</TableCell>
+                          <TableCell>UID Reviewer</TableCell>
+                          <TableCell>Action</TableCell>
                         </TableRow>
-                      <TableBody alignItems="center">
-                        {sellerData.map((seller, index) => (
-                          <TableRow key={seller.id}>
+                      <TableBody>
+                        {data.map((item, index) => (
+                          <TableRow key={item.id}>
                             <TableCell>{index + 1}</TableCell>
-                            <TableCell>{seller.id}</TableCell>
-                            <TableCell>{seller.count}</TableCell>
-                            <TableCell>{seller.description}</TableCell>
-                            <TableCell>{seller.educationalAttainment}</TableCell>
-                            <TableCell>{seller.previousSchool}</TableCell>
-                            <TableCell>{seller.totalJobsFinished}</TableCell>
-                            <TableCell>{seller.totalRating}</TableCell>
+                            <TableCell>{item.id}</TableCell>
+                            <TableCell>{item.categoryId}</TableCell>
+                            <TableCell>{item.rating}</TableCell>
+                            <TableCell>{item.review}</TableCell>
+                            <TableCell>{item.uid}</TableCell>
+                            <TableCell>{item.userUid}</TableCell>
                             <TableCell>
                               <MDButton
-                                onClick={() => handleOpenDialog(seller.id)}
+                                onClick={() => handleOpenDialog(item.id)}
                                 variant="contained"
                                 sx={{
                                   backgroundColor: 'red',
@@ -158,14 +155,14 @@ function Info() {
         <DialogTitle>Confirm Delete</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Are you sure you want to delete this seller?
+            Are you sure you want to delete this item?
           </DialogContentText>
         </DialogContent>
         <DialogActions>
           <MDButton onClick={handleCloseDialog} color="primary">
             Cancel
           </MDButton>
-          <MDButton onClick={() => handleDeleteSeller(deleteSellerId)} color="error">
+          <MDButton onClick={() => handleDelete(deleteId)} color="error">
             Delete
           </MDButton>
         </DialogActions>
@@ -174,4 +171,4 @@ function Info() {
   );
 }
 
-export default Info;
+export default Review;

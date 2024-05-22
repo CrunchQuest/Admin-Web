@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { getDatabase, ref, onValue, remove } from 'firebase/database';
-import { database } from "../../firebase";
 import DashboardLayout from "../../examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "../../examples/Navbars/DashboardNavbar";
 import Footer from "../../examples/Footer";
@@ -11,67 +10,63 @@ import { Table, TableBody, TableRow, TableCell, TableHead, Dialog, DialogTitle, 
 import Grid from "@mui/material/Grid";
 
 // Admin panel React components
-import MDBox from "components/MDBox"
+import MDBox from "components/MDBox";
 import Card from "@mui/material/Card";
 import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
 import Icon from "@mui/material/Icon";
 import DeleteIcon from '@mui/icons-material/Delete';
 
-function Info() {
-  const [sellerData, setSellerData] = useState([]);
-  const [deleteSellerId, setDeleteSellerId] = useState(null);
+function ServiceRequests() {
+  const [serviceRequests, setServiceRequests] = useState([]);
+  const [deleteRequestId, setDeleteRequestId] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
 
   useEffect(() => {
-    const fetchAllSellers = () => {
+    const fetchAllServiceRequests = () => {
       const db = getDatabase();
-      const sellersRef = ref(db, 'user_seller_info');
-      onValue(sellersRef, (snapshot) => {
-        const sellers = [];
+      const requestsRef = ref(db, 'service_requests');
+
+      onValue(requestsRef, (snapshot) => {
+        const requests = [];
         snapshot.forEach((childSnapshot) => {
-          const seller = {
+          const request = {
             id: childSnapshot.key,
-            count: childSnapshot.val().count,
-            description: childSnapshot.val().description,
-            educationalAttainment: childSnapshot.val().educationalAttainment,
-            previousSchool: childSnapshot.val().previousSchool,
-            totalJobsFinished: childSnapshot.val().totalJobsFinished,
-            totalRating: childSnapshot.val().totalRating,
+            ...childSnapshot.val(),
           };
-          sellers.push(seller);
+          requests.push(request);
         });
-        setSellerData(sellers);
+        setServiceRequests(requests);
       }, (error) => {
-        console.error('Error fetching sellers:', error);
+        console.error('Error fetching service requests:', error);
       });
     };
 
-    fetchAllSellers();
+    fetchAllServiceRequests();
   }, []);
 
-  const handleDeleteSeller = (sellerId) => {
+  const handleDeleteRequest = (requestId) => {
     const db = getDatabase();
-    const sellerRef = ref(db, `user_seller_info/${sellerId}`);
-    remove(sellerRef)
+    const requestRef = ref(db, `service_requests/${requestId}`);
+    remove(requestRef)
       .then(() => {
-        // Remove the seller from state after successful deletion
-        setSellerData(prevSellers => prevSellers.filter(seller => seller.id !== sellerId));
+        // Remove the request from state after successful deletion
+        setServiceRequests(prevRequests => prevRequests.filter(request => request.id !== requestId));
       })
       .catch((error) => {
-        console.error('Error deleting seller:', error);
+        console.error('Error deleting service request:', error);
       });
     handleCloseDialog();
   };
 
-  const handleOpenDialog = (sellerId) => {
-    setDeleteSellerId(sellerId);
+  const handleOpenDialog = (requestId) => {
+    setDeleteRequestId(requestId);
     setOpenDialog(true);
   };
 
   const handleCloseDialog = () => {
     setOpenDialog(false);
-    setDeleteSellerId(null);
+    setDeleteRequestId(null);
   };
 
   return (
@@ -95,37 +90,43 @@ function Info() {
                   >
                     <MDBox pt={2} pb={2} px={2} display="flex" justifyContent="space-between" alignItems="center">
                       <MDTypography variant="h6" fontWeight="medium" color="white">
-                        All Sellers
+                        All Service Requests
                       </MDTypography>
                     </MDBox>
                   </MDBox>
                   <MDBox pt={3}>
-                    <Table display="flex" alignItems="center">
-                        <TableRow align="center">
+                    <Table>
+                        <TableRow>
                           <TableCell>No.</TableCell>
                           <TableCell>ID</TableCell>
-                          <TableCell>Count</TableCell>
+                          <TableCell>Booked By</TableCell>
+                          <TableCell>Title</TableCell>
                           <TableCell>Description</TableCell>
-                          <TableCell>Educational Attainment</TableCell>
-                          <TableCell>Previous School</TableCell>
-                          <TableCell>Total Jobs Finished</TableCell>
-                          <TableCell>Total Rating</TableCell>
-                          <TableCell>Action</TableCell> {/* Add Action column */}
+                          <TableCell>Category</TableCell>
+                          <TableCell>Date</TableCell>
+                          <TableCell>Time</TableCell>
+                          <TableCell>Price</TableCell>
+                          <TableCell>Payment Mode</TableCell>
+                          <TableCell>Status</TableCell>
+                          <TableCell>Action</TableCell>
                         </TableRow>
-                      <TableBody alignItems="center">
-                        {sellerData.map((seller, index) => (
-                          <TableRow key={seller.id}>
+                      <TableBody>
+                        {serviceRequests.map((request, index) => (
+                          <TableRow key={request.id}>
                             <TableCell>{index + 1}</TableCell>
-                            <TableCell>{seller.id}</TableCell>
-                            <TableCell>{seller.count}</TableCell>
-                            <TableCell>{seller.description}</TableCell>
-                            <TableCell>{seller.educationalAttainment}</TableCell>
-                            <TableCell>{seller.previousSchool}</TableCell>
-                            <TableCell>{seller.totalJobsFinished}</TableCell>
-                            <TableCell>{seller.totalRating}</TableCell>
+                            <TableCell>{request.id}</TableCell>
+                            <TableCell>{request.bookedBy}</TableCell>
+                            <TableCell>{request.title}</TableCell>
+                            <TableCell>{request.description}</TableCell>
+                            <TableCell>{request.category}</TableCell>
+                            <TableCell>{request.date}</TableCell>
+                            <TableCell>{request.time}</TableCell>
+                            <TableCell>Rp.{request.price}</TableCell>
+                            <TableCell>{request.modeOfPayment}</TableCell>
+                            <TableCell>{request.status}</TableCell>
                             <TableCell>
                               <MDButton
-                                onClick={() => handleOpenDialog(seller.id)}
+                                onClick={() => handleOpenDialog(request.id)}
                                 variant="contained"
                                 sx={{
                                   backgroundColor: 'red',
@@ -158,14 +159,14 @@ function Info() {
         <DialogTitle>Confirm Delete</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Are you sure you want to delete this seller?
+            Are you sure you want to delete this service request?
           </DialogContentText>
         </DialogContent>
         <DialogActions>
           <MDButton onClick={handleCloseDialog} color="primary">
             Cancel
           </MDButton>
-          <MDButton onClick={() => handleDeleteSeller(deleteSellerId)} color="error">
+          <MDButton onClick={() => handleDeleteRequest(deleteRequestId)} color="error">
             Delete
           </MDButton>
         </DialogActions>
@@ -174,4 +175,4 @@ function Info() {
   );
 }
 
-export default Info;
+export default ServiceRequests;
