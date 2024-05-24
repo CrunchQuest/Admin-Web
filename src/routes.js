@@ -5,6 +5,7 @@ import Info from "layouts/user_seller_info";
 import ServiceRequest from "layouts/services_request";
 import Review from "layouts/review_page";
 import Bookedto from "layouts/booked_to";
+import Bookedby from "layouts/booked_by";
 import AddSale from "layouts/addSale";
 import Banks from "layouts/banks";
 import Signup from "layouts/authentication/users/Signup"
@@ -95,6 +96,15 @@ const routes = [
     icon: <StarIcon />,
     route: "/admin/BookedTo",
     component: <AdminAuthRoutes><Bookedto /></AdminAuthRoutes>,
+  },
+  {
+    routeRole: "admin",
+    type: "collapse",
+    name: "Booked By",
+    key: "admin/booked_by",
+    icon: <StarIcon />,
+    route: "/admin/BookedBy",
+    component: <AdminAuthRoutes><Bookedby /></AdminAuthRoutes>,
   },
   {
     routeRole: "admin",

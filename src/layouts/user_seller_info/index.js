@@ -1,27 +1,29 @@
 import React, { useState, useEffect } from 'react';
-import { getDatabase, ref, onValue, remove } from 'firebase/database';
+import { getDatabase, ref, onValue, remove, update } from 'firebase/database';
 import { database } from "../../firebase";
 import DashboardLayout from "../../examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "../../examples/Navbars/DashboardNavbar";
 import Footer from "../../examples/Footer";
 import MDSnackbar from "../../components/MDSnackbar";
-import { Table, TableBody, TableRow, TableCell, TableHead, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@mui/material';
-
-// @mui material components
+import { Table, TableBody, TableRow, TableCell, TableHead, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, TextField, Button } from '@mui/material';
 import Grid from "@mui/material/Grid";
-
-// Admin panel React components
 import MDBox from "components/MDBox"
 import Card from "@mui/material/Card";
 import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
 import Icon from "@mui/material/Icon";
 import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
 
 function Info() {
   const [sellerData, setSellerData] = useState([]);
   const [deleteSellerId, setDeleteSellerId] = useState(null);
-  const [openDialog, setOpenDialog] = useState(false);
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [editSellerId, setEditSellerId] = useState(null);
+  const [editDescription, setEditDescription] = useState('');
+  const [editEducationalAttainment, setEditEducationalAttainment] = useState('');
+  const [editPreviousSchool, setEditPreviousSchool] = useState('');
+  const [openEditDialog, setOpenEditDialog] = useState(false);
 
   useEffect(() => {
     const fetchAllSellers = () => {
@@ -61,17 +63,57 @@ function Info() {
       .catch((error) => {
         console.error('Error deleting seller:', error);
       });
-    handleCloseDialog();
+    setOpenDeleteDialog(false);
   };
 
-  const handleOpenDialog = (sellerId) => {
+  const handleOpenDeleteDialog = (sellerId) => {
     setDeleteSellerId(sellerId);
-    setOpenDialog(true);
+    setOpenDeleteDialog(true);
   };
 
-  const handleCloseDialog = () => {
-    setOpenDialog(false);
+  const handleCloseDeleteDialog = () => {
+    setOpenDeleteDialog(false);
     setDeleteSellerId(null);
+  };
+
+  const handleOpenEditDialog = (sellerId) => {
+    const sellerToEdit = sellerData.find(seller => seller.id === sellerId);
+    if (sellerToEdit) {
+      setEditSellerId(sellerId);
+      setEditDescription(sellerToEdit.description);
+      setEditEducationalAttainment(sellerToEdit.educationalAttainment);
+      setEditPreviousSchool(sellerToEdit.previousSchool);
+      setOpenEditDialog(true);
+    }
+  };
+
+  const handleCloseEditDialog = () => {
+    setOpenEditDialog(false);
+    setEditSellerId(null);
+    setEditDescription('');
+    setEditEducationalAttainment('');
+    setEditPreviousSchool('');
+  };
+
+  const handleEditSeller = () => {
+    const db = getDatabase();
+    const sellerRef = ref(db, `user_seller_info/${editSellerId}`);
+    update(sellerRef, {
+      description: editDescription,
+      educationalAttainment: editEducationalAttainment,
+      previousSchool: editPreviousSchool
+    })
+    .then(() => {
+      setSellerData(prevSellers =>
+        prevSellers.map(seller =>
+          seller.id === editSellerId ? { ...seller, description: editDescription, educationalAttainment: editEducationalAttainment, previousSchool: editPreviousSchool } : seller
+        )
+      );
+      handleCloseEditDialog();
+    })
+    .catch((error) => {
+      console.error('Error editing seller:', error);
+    });
   };
 
   return (
@@ -125,17 +167,32 @@ function Info() {
                             <TableCell>{seller.totalRating}</TableCell>
                             <TableCell>
                               <MDButton
-                                onClick={() => handleOpenDialog(seller.id)}
-                                variant="contained"
-                                sx={{
-                                  backgroundColor: 'red',
-                                  width: '40px',
-                                  height: '40px',
-                                  minWidth: 'auto',
-                                  padding: '5px'
-                                }}
+                              onClick={() => handleOpenDeleteDialog(seller.id)}
+                              variant="contained"
+                              sx={{
+                                backgroundColor: 'red',
+                                width: '40px',
+                                height: '40px',
+                                minWidth: 'auto',
+                                padding: '5px',
+                                color: 'white'
+                              }}
                               >
                                 <DeleteIcon />
+                              </MDButton>
+                              <MDButton
+                              onClick={() => handleOpenEditDialog(seller.id)}
+                              variant="contained"
+                              sx={{
+                                backgroundColor: 'blue',
+                                width: '40px',
+                                height: '40px',
+                                minWidth: 'auto',
+                                padding: '5px',
+                                marginTop: '10px',
+                              }}
+                              >
+                                <EditIcon />
                               </MDButton>
                             </TableCell>
                           </TableRow>
@@ -152,8 +209,8 @@ function Info() {
       </DashboardLayout>
 
       <Dialog
-        open={openDialog}
-        onClose={handleCloseDialog}
+        open={openDeleteDialog}
+        onClose={handleCloseDeleteDialog}
       >
         <DialogTitle>Confirm Delete</DialogTitle>
         <DialogContent>
@@ -162,11 +219,56 @@ function Info() {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <MDButton onClick={handleCloseDialog} color="primary">
+          <MDButton onClick={handleCloseDeleteDialog} color="info">
             Cancel
           </MDButton>
           <MDButton onClick={() => handleDeleteSeller(deleteSellerId)} color="error">
             Delete
+          </MDButton>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={openEditDialog}
+        onClose={handleCloseEditDialog}
+      >
+        <DialogTitle>Edit Seller</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            id="description"
+            label="Description"
+            type="text"
+            fullWidth
+            value={editDescription}
+            onChange={(e) => setEditDescription(e.target.value)}
+          />
+          <TextField
+            margin="dense"
+            id="educationalAttainment"
+            label="Educational Attainment"
+            type="text"
+            fullWidth
+            value={editEducationalAttainment}
+            onChange={(e) => setEditEducationalAttainment(e.target.value)}
+          />
+          <TextField
+            margin="dense"
+            id="previousSchool"
+            label="Previous School"
+            type="text"
+            fullWidth
+            value={editPreviousSchool}
+            onChange={(e) => setEditPreviousSchool(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <MDButton onClick={handleCloseEditDialog} color="error">
+            Cancel
+          </MDButton>
+          <MDButton onClick={handleEditSeller} color="info">
+            Save
           </MDButton>
         </DialogActions>
       </Dialog>
@@ -175,3 +277,4 @@ function Info() {
 }
 
 export default Info;
+

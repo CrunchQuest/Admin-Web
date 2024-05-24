@@ -15,29 +15,38 @@ import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
 import DeleteIcon from '@mui/icons-material/Delete';
 
-function Review() {
+function Bookedby() {
   const [data, setData] = useState([]);
-  const [deleteId, setDeleteId] = useState(null);
+  const [deleteItem, setDeleteItem] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
 
   useEffect(() => {
     const fetchData = () => {
       const db = getDatabase();
-      const dataRef = ref(db, 'reviews'); // Replace 'reviews' with the correct path in your database
+      const dataRef = ref(db, 'booked_to');
       onValue(dataRef, (snapshot) => {
         const items = [];
-        snapshot.forEach((childSnapshot) => {
-          const id = childSnapshot.key;
-          childSnapshot.forEach((uidSnapshot) => {
-            const item = {
-              id: id,
-              uid: uidSnapshot.key,
-              categoryId: uidSnapshot.val().categoryId,
-              rating: uidSnapshot.val().rating,
-              review: uidSnapshot.val().review,
-              userUid: uidSnapshot.val().userUid,
-            };
-            items.push(item);
+        snapshot.forEach((uidSnapshot) => {
+          const uid = uidSnapshot.key;
+          uidSnapshot.forEach((idSnapshot) => {
+            const id = idSnapshot.key;
+            idSnapshot.forEach((bookedSnapshot) => {
+              const bookid = bookedSnapshot.key;
+              const item = {
+                uid: uid,
+                id: id,
+                name: bookedSnapshot.val().name,
+                address: bookedSnapshot.val().address,
+                assistConfirmation: bookedSnapshot.val().assistConfirmation,
+                assistUser: bookedSnapshot.val().assistUser,
+                buyerConfirmation: bookedSnapshot.val().buyerConfirmation,
+                sellerConfirmation: bookedSnapshot.val().sellerConfirmation,
+                status: bookedSnapshot.val().status,
+                category: bookedSnapshot.val().category,
+                date: bookedSnapshot.val().date,
+              };
+              items.push(item);
+            });
           });
         });
         setData(items);
@@ -49,28 +58,30 @@ function Review() {
     fetchData();
   }, []);
 
-  const handleDelete = (id) => {
-    const db = getDatabase();
-    const dataRef = ref(db, `reviews/${id}`);  // Replace 'your_data_path' with the correct path in your database
-    remove(dataRef)
-      .then(() => {
-        // Remove the item from state after successful deletion
-        setData(prevData => prevData.filter(item => item.id !== id));
-      })
-      .catch((error) => {
-        console.error('Error deleting item:', error);
-      });
-    handleCloseDialog();
+  const handleDelete = () => {
+    if (deleteItem) {
+      const { uid, id, bookid } = deleteItem;
+      const db = getDatabase();
+      const dataRef = ref(db, `booked_to/${uid}/${id}/${bookid}`);
+      remove(dataRef)
+        .then(() => {
+          setData(prevData => prevData.filter(item => !(item.uid === uid && item.id === id && item.bookid === bookid)));
+        })
+        .catch((error) => {
+          console.error('Error deleting item:', error);
+        });
+      handleCloseDialog();
+    }
   };
 
-  const handleOpenDialog = (id) => {
-    setDeleteId(id);
+  const handleOpenDialog = (item) => {
+    setDeleteItem(item);
     setOpenDialog(true);
   };
 
   const handleCloseDialog = () => {
     setOpenDialog(false);
-    setDeleteId(null);
+    setDeleteItem(null);
   };
 
   return (
@@ -94,7 +105,7 @@ function Review() {
                   >
                     <MDBox pt={2} pb={2} px={2} display="flex" justifyContent="space-between" alignItems="center">
                       <MDTypography variant="h6" fontWeight="medium" color="white">
-                        All Items
+                        All BookedTo
                       </MDTypography>
                     </MDBox>
                   </MDBox>
@@ -103,26 +114,38 @@ function Review() {
                         <TableRow>
                           <TableCell>No.</TableCell>
                           <TableCell>User ID</TableCell>
-                          <TableCell>Category ID</TableCell>
-                          <TableCell>Rating</TableCell>
-                          <TableCell>Review</TableCell>
-                          <TableCell>ID Review</TableCell>
-                          <TableCell>UID Reviewer</TableCell>
+                          <TableCell>ID</TableCell>
+                          <TableCell>Book ID</TableCell>
+                          <TableCell>Name</TableCell>
+                          <TableCell>Address</TableCell>
+                          <TableCell>Assist Confirmation</TableCell>
+                          <TableCell>Assist User</TableCell>
+                          <TableCell>Buyer Confirmation</TableCell>
+                          <TableCell>Seller Confirmation</TableCell>
+                          <TableCell>Category</TableCell>
+                          <TableCell>Status</TableCell>
+                          <TableCell>Date</TableCell>
                           <TableCell>Action</TableCell>
                         </TableRow>
                       <TableBody>
                         {data.map((item, index) => (
-                          <TableRow key={item.id}>
+                          <TableRow key={`${item.uid}-${item.id}-${item.bookid}`}>
                             <TableCell>{index + 1}</TableCell>
-                            <TableCell>{item.id}</TableCell>
-                            <TableCell>{item.categoryId}</TableCell>
-                            <TableCell>{item.rating}</TableCell>
-                            <TableCell>{item.review}</TableCell>
                             <TableCell>{item.uid}</TableCell>
-                            <TableCell>{item.userUid}</TableCell>
+                            <TableCell>{item.id}</TableCell>
+                            <TableCell>{item.bookid}</TableCell>
+                            <TableCell>{item.name}</TableCell>
+                            <TableCell>{item.address}</TableCell>
+                            <TableCell>{item.assistConfirmation}</TableCell>
+                            <TableCell>{item.assistUser}</TableCell>
+                            <TableCell>{item.buyerConfirmation}</TableCell>
+                            <TableCell>{item.sellerConfirmation}</TableCell>
+                            <TableCell>{item.category}</TableCell>
+                            <TableCell>{item.status}</TableCell>
+                            <TableCell>{item.date}</TableCell>
                             <TableCell>
                               <MDButton
-                                onClick={() => handleOpenDialog(item.id)}
+                                onClick={() => handleOpenDialog(item)}
                                 variant="contained"
                                 sx={{
                                   backgroundColor: 'red',
@@ -162,7 +185,7 @@ function Review() {
           <MDButton onClick={handleCloseDialog} color="primary">
             Cancel
           </MDButton>
-          <MDButton onClick={() => handleDelete(deleteId)} color="error">
+          <MDButton onClick={handleDelete} color="error">
             Delete
           </MDButton>
         </DialogActions>
@@ -171,4 +194,4 @@ function Review() {
   );
 }
 
-export default Review;
+export default Bookedby;
