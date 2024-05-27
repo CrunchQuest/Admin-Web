@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getDatabase, ref, onValue, remove } from 'firebase/database';
+import { getDatabase, ref, onValue, remove, update } from 'firebase/database';
 import DashboardLayout from "../../examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "../../examples/Navbars/DashboardNavbar";
 import Footer from "../../examples/Footer";
@@ -11,19 +11,26 @@ import Grid from "@mui/material/Grid";
 // Admin panel React components
 import MDBox from "components/MDBox";
 import Card from "@mui/material/Card";
+import TextField from '@mui/material/TextField';
 import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
 import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
+import StarIcon from '@mui/icons-material/Star';
 
 function Review() {
   const [data, setData] = useState([]);
   const [deleteId, setDeleteId] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
+  const [editId, setEditId] = useState(null);
+  const [editRating, setEditRating] = useState('');
+  const [editReview, setEditReview] = useState('');
+  const [openEditDialog, setOpenEditDialog] = useState(false);
 
   useEffect(() => {
     const fetchData = () => {
       const db = getDatabase();
-      const dataRef = ref(db, 'reviews'); // Replace 'reviews' with the correct path in your database
+      const dataRef = ref(db, 'reviews');
       onValue(dataRef, (snapshot) => {
         const items = [];
         snapshot.forEach((childSnapshot) => {
@@ -51,10 +58,9 @@ function Review() {
 
   const handleDelete = (id) => {
     const db = getDatabase();
-    const dataRef = ref(db, `reviews/${id}`);  // Replace 'your_data_path' with the correct path in your database
+    const dataRef = ref(db, `reviews/${id}`);
     remove(dataRef)
       .then(() => {
-        // Remove the item from state after successful deletion
         setData(prevData => prevData.filter(item => item.id !== id));
       })
       .catch((error) => {
@@ -71,6 +77,51 @@ function Review() {
   const handleCloseDialog = () => {
     setOpenDialog(false);
     setDeleteId(null);
+  };
+
+  const handleOpenEditDialog = (id, rating, review) => {
+    setEditId(id);
+    setEditRating(rating);
+    setEditReview(review);
+    setOpenEditDialog(true);
+  };
+
+  const handleCloseEditDialog = () => {
+    setOpenEditDialog(false);
+    setEditId(null);
+    setEditRating('');
+    setEditReview('');
+  };
+
+  const handleEdit = () => {
+    const db = getDatabase();
+    const dataRef = ref(db, `reviews/${editId}`);
+    const updatedData = {
+      rating: editRating,
+      review: editReview,
+    };
+    update(dataRef, updatedData)
+      .then(() => {
+        setData(prevData =>
+          prevData.map(item =>
+            item.id === editId ? { ...item, ...updatedData } : item
+          )
+        );
+        handleCloseEditDialog();
+      })
+      .catch((error) => {
+        console.error('Error editing item:', error);
+      });
+  };
+
+  const renderStarIcons = (rating) => {
+    const stars = [];
+    for (let i = 0; i < 5; i++) {
+      stars.push(
+        <StarIcon key={i} style={{ color: i < rating ? 'gold' : 'grey' }} />
+      );
+    }
+    return stars;
   };
 
   return (
@@ -100,23 +151,12 @@ function Review() {
                   </MDBox>
                   <MDBox pt={3}>
                     <Table>
-                        <TableRow>
-                          <TableCell>No.</TableCell>
-                          <TableCell>User ID</TableCell>
-                          <TableCell>Category ID</TableCell>
-                          <TableCell>Rating</TableCell>
-                          <TableCell>Review</TableCell>
-                          <TableCell>ID Review</TableCell>
-                          <TableCell>UID Reviewer</TableCell>
-                          <TableCell>Action</TableCell>
-                        </TableRow>
                       <TableBody>
                         {data.map((item, index) => (
                           <TableRow key={item.id}>
                             <TableCell>{index + 1}</TableCell>
                             <TableCell>{item.id}</TableCell>
-                            <TableCell>{item.categoryId}</TableCell>
-                            <TableCell>{item.rating}</TableCell>
+                            <TableCell>{renderStarIcons(item.rating)}</TableCell>
                             <TableCell>{item.review}</TableCell>
                             <TableCell>{item.uid}</TableCell>
                             <TableCell>{item.userUid}</TableCell>
@@ -134,6 +174,20 @@ function Review() {
                               >
                                 <DeleteIcon />
                               </MDButton>
+                              <MDButton
+                                onClick={() => handleOpenEditDialog(item.id, item.rating, item.review)}
+                                variant="contained"
+                                sx={{
+                                  backgroundColor: 'blue',
+                                  width: '40px',
+                                  height: '40px',
+                                  minWidth: 'auto',
+                                  padding: '5px',
+                                  marginLeft: '10px'
+                                }}
+                              >
+                                <EditIcon />
+                              </MDButton>
                             </TableCell>
                           </TableRow>
                         ))}
@@ -147,6 +201,7 @@ function Review() {
         </MDBox>
         <Footer />
       </DashboardLayout>
+
 
       <Dialog
         open={openDialog}
@@ -164,6 +219,43 @@ function Review() {
           </MDButton>
           <MDButton onClick={() => handleDelete(deleteId)} color="error">
             Delete
+          </MDButton>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={openEditDialog}
+        onClose={handleCloseEditDialog}
+      >
+        <DialogTitle>Edit Review</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Edit the review details:
+          </DialogContentText>
+          <form>
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
+              <span style={{ marginRight: '10px' }}>Rating:</span>
+              {renderStarIcons(editRating)}
+            </div>
+            <TextField
+              margin="dense"
+              id="editReview"
+              label="Review"
+              type="text"
+              fullWidth
+              variant="outlined"
+              value={editReview}
+              onChange={(e) => setEditReview(e.target.value)}
+              style={{ marginBottom: '15px' }}
+            />
+          </form>
+        </DialogContent>
+        <DialogActions>
+          <MDButton onClick={handleCloseEditDialog} color="error">
+            Cancel
+          </MDButton>
+          <MDButton onClick={handleEdit} color="success">
+            Save
           </MDButton>
         </DialogActions>
       </Dialog>
