@@ -52,10 +52,21 @@ function ServiceRequests() {
   const handleDeleteRequest = (requestId) => {
     const db = getDatabase();
     const requestRef = ref(db, `service_requests/${requestId}`);
+  
+    // Get the request data
+    const request = serviceRequests.find(request => request.id === requestId);
+  
+    // Determine the key to check (bookedBy, userUid, or service_booked_uid)
+    const keyToCheck = request.bookedBy ? 'bookedBy' : (request.userUid ? 'userUid' : 'service_booked_uid');
+    const valueToCheck = request[keyToCheck];
+  
+    // Filter the service requests based on the condition
+    const filteredRequests = serviceRequests.filter(request => request[keyToCheck] === valueToCheck);
+  
     remove(requestRef)
       .then(() => {
         // Remove the request from state after successful deletion
-        setServiceRequests(prevRequests => prevRequests.filter(request => request.id !== requestId));
+        setServiceRequests(filteredRequests);
       })
       .catch((error) => {
         console.error('Error deleting service request:', error);
