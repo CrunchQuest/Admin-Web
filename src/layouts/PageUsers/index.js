@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getDatabase, ref, onValue, remove, update } from 'firebase/database';
+import { getAuth, deleteUser } from 'firebase/auth';
 import DashboardLayout from "../../examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "../../examples/Navbars/DashboardNavbar";
 import Footer from "../../examples/Footer";
@@ -72,21 +73,25 @@ function Users() {
   }, []);
 
   const handleDeleteUser = (userId) => {
+    const auth = getAuth();
     const db = getDatabase();
     const userRef = ref(db, `users/${userId}`);
     const userLocationRef = ref(db, `user_current_location/${userId}`);
-    remove(userRef)
+  
+    // Remove the user from Firebase Authentication
+    deleteUser(auth.currentUser)
       .then(() => {
-        // Also remove the user location
-        return remove(userLocationRef);
-      })
-      .then(() => {
+        // Remove the user from the 'users' collection
+        remove(userRef);
+        // Remove the user's location
+        remove(userLocationRef);
         // Remove the user from state after successful deletion
         setUserData(prevUsers => prevUsers.filter(user => user.id !== userId));
       })
       .catch((error) => {
         console.error('Error deleting user:', error);
       });
+  
     handleCloseDialog();
   };
 

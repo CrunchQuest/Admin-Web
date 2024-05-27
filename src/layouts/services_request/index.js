@@ -29,7 +29,7 @@ function ServiceRequests() {
   useEffect(() => {
     const fetchAllServiceRequests = () => {
       const db = getDatabase();
-      const requestsRef = ref(db, 'service_requests');
+      const requestsRef = ref(db, 'service_requests', 'booked_by');
 
       onValue(requestsRef, (snapshot) => {
         const requests = [];
@@ -48,7 +48,7 @@ function ServiceRequests() {
 
     fetchAllServiceRequests();
   }, []);
-
+  
   const handleDeleteRequest = (requestId) => {
     const db = getDatabase();
     const requestRef = ref(db, `service_requests/${requestId}`);
@@ -57,23 +57,32 @@ function ServiceRequests() {
     const request = serviceRequests.find(request => request.id === requestId);
   
     // Determine the key to check (bookedBy, userUid, or service_booked_uid)
-    const keyToCheck = request.bookedBy ? 'bookedBy' : (request.userUid ? 'userUid' : 'service_booked_uid');
+    const keyToCheck = request.bookedBy ? 'booked_by' : (request.userUid ? 'userUid' : 'service_booked_uid');
     const valueToCheck = request[keyToCheck];
   
-    // Filter the service requests based on the condition
-    const filteredRequests = serviceRequests.filter(request => request[keyToCheck] === valueToCheck);
+    // Create a reference to the booked_by table
+    const bookedByRef = ref(db, `booked_by/${keyToCheck}/${valueToCheck}/${requestId}`);
   
     remove(requestRef)
       .then(() => {
         // Remove the request from state after successful deletion
-        setServiceRequests(filteredRequests);
+        setServiceRequests(prevRequests => prevRequests.filter(request => request.id !== requestId));
+  
+        // Remove the corresponding entry from the booked_by table
+        remove(bookedByRef)
+          .then(() => {
+            console.log('Successfully deleted entry from booked_by table');
+          })
+          .catch((error) => {
+            console.error('Error deleting entry from booked_by table:', error);
+          });
       })
       .catch((error) => {
         console.error('Error deleting service request:', error);
       });
     handleCloseDialog();
   };
-
+  
   const handleOpenDialog = (requestId) => {
     setDeleteRequestId(requestId);
     setOpenDialog(true);
