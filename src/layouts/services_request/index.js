@@ -164,20 +164,6 @@ function ServiceRequests() {
                             <TableCell>{request.status}</TableCell>
                             <TableCell>
                               <MDButton
-                                onClick={() => handleOpenEditDialog(request)}
-                                variant="contained"
-                                sx={{
-                                  backgroundColor: 'blue',
-                                  width: '40px',
-                                  height: '40px',
-                                  minWidth: 'auto',
-                                  padding: '5px',
-                                  marginRight: '5px',
-                                }}
-                              >
-                                <EditIcon />
-                              </MDButton>
-                              <MDButton
                                 onClick={() => handleOpenDialog(request.id)}
                                 variant="contained"
                                 sx={{
@@ -190,6 +176,20 @@ function ServiceRequests() {
                                 }}
                               >
                                 <DeleteIcon />
+                              </MDButton>
+                              <MDButton
+                                onClick={() => handleOpenEditDialog(request)}
+                                variant="contained"
+                                sx={{
+                                  backgroundColor: 'blue',
+                                  width: '40px',
+                                  height: '40px',
+                                  minWidth: 'auto',
+                                  padding: '5px',
+                                  marginRight: '5px',
+                                }}
+                              >
+                                <EditIcon />
                               </MDButton>
                             </TableCell>
                           </TableRow>
