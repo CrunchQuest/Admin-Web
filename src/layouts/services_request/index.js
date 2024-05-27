@@ -186,7 +186,7 @@ function ServiceRequests() {
                                   height: '40px',
                                   minWidth: 'auto',
                                   padding: '5px',
-                                  marginRight: '5px',
+                                  marginTop: '10px'
                                 }}
                               >
                                 <EditIcon />
