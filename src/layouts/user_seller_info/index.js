@@ -11,6 +11,7 @@ import MDBox from "components/MDBox"
 import Card from "@mui/material/Card";
 import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
+import Box from '@mui/material/Box';
 import Icon from "@mui/material/Icon";
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
@@ -166,6 +167,14 @@ function Info() {
                             <TableCell>{seller.totalJobsFinished}</TableCell>
                             <TableCell>{seller.totalRating}</TableCell>
                             <TableCell>
+                            <Box
+                            sx={{
+                              display: 'flex',
+                              justifyContent: 'center',
+                              alignItems: 'center',
+                              gap: '10px' // Adjust the gap between buttons as needed
+                            }}
+                          >
                               <MDButton
                               onClick={() => handleOpenDeleteDialog(seller.id)}
                               variant="contained"
@@ -189,11 +198,11 @@ function Info() {
                                 height: '40px',
                                 minWidth: 'auto',
                                 padding: '5px',
-                                marginTop: '10px',
                               }}
                               >
                                 <EditIcon />
                               </MDButton>
+                              </Box>
                             </TableCell>
                           </TableRow>
                         ))}

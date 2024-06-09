@@ -11,7 +11,7 @@ import Grid from "@mui/material/Grid";
 
 // Admin panel React components
 import MDBox from "components/MDBox";
-import { format } from 'date-fns';
+import Box from '@mui/material/Box';
 import Card from "@mui/material/Card";
 import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
@@ -183,6 +183,14 @@ function ServiceRequests() {
                             <TableCell>{request.modeOfPayment}</TableCell>
                             <TableCell>{request.status}</TableCell>
                             <TableCell>
+                            <Box
+                            sx={{
+                              display: 'flex',
+                              justifyContent: 'center',
+                              alignItems: 'center',
+                              gap: '10px' // Adjust the gap between buttons as needed
+                            }}
+                          >
                               <MDButton
                                 onClick={() => handleOpenDialog(request.id)}
                                 variant="contained"
@@ -211,6 +219,7 @@ function ServiceRequests() {
                               >
                                 <EditIcon />
                               </MDButton>
+                              </Box>
                             </TableCell>
                           </TableRow>
                         ))}

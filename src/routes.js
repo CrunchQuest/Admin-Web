@@ -7,6 +7,7 @@ import Review from "layouts/review_page";
 import Bookedto from "layouts/booked_to";
 import Bookedby from "layouts/booked_by";
 import AddSale from "layouts/addSale";
+import Verif from "layouts/Page_verified";
 import Banks from "layouts/banks";
 import Signup from "layouts/authentication/users/Signup"
 
@@ -20,7 +21,7 @@ import AccountBoxIcon from '@mui/icons-material/AccountBox';
 import InfoIcon from '@mui/icons-material/Info';
 import SettingsIcon from '@mui/icons-material/Settings';
 import FeedbackIcon from '@mui/icons-material/Feedback';
-import StarIcon from '@mui/icons-material/Star';
+import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import LoginIcon from '@mui/icons-material/Login';
@@ -60,6 +61,15 @@ const routes = [
     icon: <AccountBoxIcon />,
     route: "/admin/users",
     component: <AdminAuthRoutes><Users /></AdminAuthRoutes>,
+  },
+  {
+    routeRole: "admin",
+    type: "collapse",
+    name: "Verified",
+    key: "admin/VerifiedUsers",
+    icon: <VerifiedUserIcon />,
+    route: "/admin/VerifiedUsers",
+    component: <AdminAuthRoutes><Verif /></AdminAuthRoutes>,
   },
   {
     routeRole: "admin",

@@ -10,6 +10,7 @@ import Grid from "@mui/material/Grid";
 
 // Admin panel React components
 import MDBox from "components/MDBox";
+import Box from '@mui/material/Box';
 import Card from "@mui/material/Card";
 import TextField from '@mui/material/TextField';
 import MDTypography from "components/MDTypography";
@@ -161,6 +162,14 @@ function Review() {
                             <TableCell>{item.uid}</TableCell>
                             <TableCell>{item.userUid}</TableCell>
                             <TableCell>
+                            <Box
+                            sx={{
+                              display: 'flex',
+                              justifyContent: 'center',
+                              alignItems: 'center',
+                              gap: '10px' // Adjust the gap between buttons as needed
+                            }}
+                          >
                               <MDButton
                                 onClick={() => handleOpenDialog(item.id)}
                                 variant="contained"
@@ -183,11 +192,11 @@ function Review() {
                                   height: '40px',
                                   minWidth: 'auto',
                                   padding: '5px',
-                                  marginLeft: '10px'
                                 }}
                               >
                                 <EditIcon />
                               </MDButton>
+                            </Box>
                             </TableCell>
                           </TableRow>
                         ))}

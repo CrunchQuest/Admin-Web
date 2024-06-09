@@ -10,7 +10,8 @@ import { Table, TableBody, TableRow, TableCell, TableHead, Dialog, DialogTitle, 
 import Grid from "@mui/material/Grid";
 
 // Admin panel React components
-import MDBox from "components/MDBox"
+import MDBox from "components/MDBox";
+import Box from '@mui/material/Box';
 import TextField from '@material-ui/core/TextField';
 import Card from "@mui/material/Card";
 import MDTypography from "components/MDTypography";
@@ -206,6 +207,14 @@ function Users() {
                           <TableCell>{user.longitude || 'N/A'}</TableCell>
                           <TableCell>{user.timestamp ? new Date(user.timestamp).toLocaleString() : 'N/A'}</TableCell>
                           <TableCell>
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              justifyContent: 'center',
+                              alignItems: 'center',
+                              gap: '10px' // Adjust the gap between buttons as needed
+                            }}
+                          >
                             <MDButton
                               onClick={() => handleOpenDialog(user.id)}
                               variant="contained"
@@ -229,11 +238,11 @@ function Users() {
                                 height: '40px',
                                 minWidth: 'auto',
                                 padding: '5px',
-                                marginTop: '10px',
                               }}
                             >
                               <EditIcon />
                             </MDButton>
+                            </Box>
                           </TableCell>
                         </TableRow>
                       ))}
